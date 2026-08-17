@@ -12,22 +12,23 @@ const API_SECRET = 'PeQK52NbeeNf7eeEeMEabUPkrbZgp8VEm66Ab4Hcsrkd';
 app.get('/get-token', async (req, res) => {
   try {
     const roomName = 'bihar-fm-room';
-    const isHost = req.query.isHost === 'true';
+    
+    // Explicit string conversion check
+    const isHost = String(req.query.isHost).toLowerCase() === 'true';
     const participantName = isHost ? 'HostUser' : 'Listener_' + Math.floor(Math.random() * 1000);
 
-    // Modern AccessToken Constructor
     const at = new AccessToken(API_KEY, API_SECRET, {
       identity: participantName,
       name: participantName,
       ttl: '24h'
     });
 
-    // Explicit Grant Object
+    // Grant logic fix
     at.addGrant({
       roomJoin: true,
       room: roomName,
-      canPublish: isHost,
-      canPublishData: isHost,
+      canPublish: isHost,        // Host -> true, Listener -> false
+      canPublishData: isHost,    // Host -> true, Listener -> false
       canSubscribe: true
     });
 
