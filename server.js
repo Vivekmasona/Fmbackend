@@ -5,21 +5,20 @@ const { AccessToken } = require('livekit-server-sdk');
 const app = express();
 app.use(cors());
 
-// LiveKit WebSockets URL & Credentials (Bilkul sahi match hone chahiye)
 const LIVEKIT_URL = 'wss://biharfm-p24tdm9r.livekit.cloud';
-const API_KEY = 'APIVRpgLuv98HmK';  // <-- LiveKit Dashboard wali nayi API Key
-const API_SECRET = 'PeQK52NbeeNf7eeEeMEabUPkrbZgp8VEm66Ab4Hcsrkd'; // <-- LiveKit Dashboard wali nayi Secret Key
+const API_KEY = 'APIVRpgLuv98HmK';
+const API_SECRET = 'PeQK52NbeeNf7eeEeMEabUPkrbZgp8VEm66Ab4Hcsrkd';
 
 app.get('/get-token', async (req, res) => {
   try {
     const roomName = 'bihar-fm-room';
-    const participantName = req.query.name || (req.query.isHost === 'true' ? 'HostUser' : 'Listener_' + Math.floor(Math.random() * 1000));
+    const participantName = req.query.isHost === 'true' ? 'HostUser' : 'Listener_' + Math.floor(Math.random() * 1000);
     const isHost = req.query.isHost === 'true';
 
-    // AccessToken generating using official LiveKit SDK
+    // ttl: '10h' add kiya gaya hai taaki token instant expire na ho
     const at = new AccessToken(API_KEY, API_SECRET, {
       identity: participantName,
-      ttl: '1d' // Token validity set to 24 hours
+      ttl: '10h' 
     });
 
     at.addGrant({
