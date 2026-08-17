@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bihar FM Live Radio</title>
+  <!-- Official LiveKit CDN Bundle -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/livekit-client/2.17.3/livekit-client.umd.min.js"></script>
+</head>
+<body style="font-family: Arial, sans-serif; text-align: center; padding: 40px; background-color: #0f172a; color: white;">
+
+  <h1>📻 Bihar FM Live Station</h1>
+  <p id="status" style="font-size: 18px; color: #f59e0b; font-weight: bold;">Status: Ready to Connect</p>
+
+  <div style="margin-top: 30px;">
+    <button id="hostBtn" style="padding: 14px 28px; font-size: 16px; background-color: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer; margin-right: 15px;">🎙️ Start Live Broadcast</button>
+    <button id="listenBtn" style="padding: 14px 28px; font-size: 16px; background-color: #10b981; color: white; border: none; border-radius: 8px; cursor: pointer;">🎧 Tune In (Listen FM)</button>
+  </div>
+
+  <audio id="fmAudio" autoplay></audio>
+
+  <script>
+    const BACKEND_URL = "https://fmbackend-8otb.onrender.com";
+
+    // Dynamic LiveKit Client Exposer
+    function getLiveKitSDK() {
+      if (window.LivekitClient) return window.LivekitClient;
+      if (window.LiveKitClient) return window.LiveKitClient;
+      throw new Error("LiveKit SDK block ho gaya hai. Network check karein.");
+    }
+
+    // HOST LOGIC
+    document.getElementById('hostBtn').onclick = async () => {
+      document.getElementById('status').innerText = "Connecting Host...";
+      try {
+        const LK = getLiveKitSDK();
+        const res = await fetch(`${BACKEND_URL}/get-token?isHost=true`);
+        const data = await res.json();
+
+        if (!data.token) throw new Error("Backend Token nahi mila");
+
+        const room = new LK.Room();
+        await room.connect(data.url, data.token);
+        await room.localParticipant.setMicrophoneEnabled(true);
+
+        document.getElementById('status').innerText = "🔴 LIVE BROADCASTING";
+        alert("Aapka Microphone Live Ho Gaya Hai!");
+      } catch (err) {
+        document.getElementById('status').innerText = "Host Error!";
+        alert("Error: " + err.message);
+      }
+    };
+
+    // LISTENER LOGIC
+    document.getElementById('listenBtn').onclick = async () => {
+      document.getElementById('status').innerText = "Connecting Listener...";
+      try {
+        const LK = getLiveKitSDK();
+        const res = await fetch(`${BACKEND_URL}/get-token?isHost=false`);
+        const data = await res.json();
+
+        if (!data.token) throw new Error("Backend Token nahi mila");
+
+        const room = new LK.Room();
+
+        room.on(LK.RoomEvent.TrackSubscribed, (track) => {
+          if (track.kind === LK.Track.Kind.Audio) {
+            const audio = document.getElementById('fmAudio');
+            track.attach(audio);
+            audio.play();
+          }
+        });
+
+        await room.connect(data.url, data.token);
+        document.getElementById('status').innerText = "🎧 Listening Live to Bihar FM";
+      } catch (err) {
+        document.getElementById('status').innerText = "Listener Error!";
+        alert("Error: " + err.message);
+      }
+    };
+  </script>
+</body>
+</html>
