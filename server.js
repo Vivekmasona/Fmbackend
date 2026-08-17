@@ -5,10 +5,10 @@ const { AccessToken } = require('livekit-server-sdk');
 const app = express();
 app.use(cors());
 
-// LiveKit Credentials Configured
+// LiveKit WebSockets URL & Credentials (Bilkul sahi match hone chahiye)
 const LIVEKIT_URL = 'wss://biharfm-p24tdm9r.livekit.cloud';
-const API_KEY = 'APIVRpgLuv98HmK';
-const API_SECRET = 'PeQK52NbeeNf7eeEeMEabUPkrbZgp8VEm66Ab4Hcsrkd';
+const API_KEY = 'APIVRpgLuv98HmK';  // <-- LiveKit Dashboard wali nayi API Key
+const API_SECRET = 'PeQK52NbeeNf7eeEeMEabUPkrbZgp8VEm66Ab4Hcsrkd'; // <-- LiveKit Dashboard wali nayi Secret Key
 
 app.get('/get-token', async (req, res) => {
   try {
@@ -16,15 +16,17 @@ app.get('/get-token', async (req, res) => {
     const participantName = req.query.name || (req.query.isHost === 'true' ? 'HostUser' : 'Listener_' + Math.floor(Math.random() * 1000));
     const isHost = req.query.isHost === 'true';
 
+    // AccessToken generating using official LiveKit SDK
     const at = new AccessToken(API_KEY, API_SECRET, {
       identity: participantName,
+      ttl: '1d' // Token validity set to 24 hours
     });
 
     at.addGrant({
       roomJoin: true,
       room: roomName,
-      canPublish: isHost,   // Host audio bol sakta hai
-      canSubscribe: true,   // Listeners audio sun sakte hain
+      canPublish: isHost,
+      canSubscribe: true,
     });
 
     const token = await at.toJwt();
