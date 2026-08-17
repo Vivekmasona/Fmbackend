@@ -9,34 +9,26 @@ const LIVEKIT_URL = 'wss://biharfm-p24tdm9r.livekit.cloud';
 const API_KEY = 'APIVRpgLuv98HmK';
 const API_SECRET = 'PeQK52NbeeNf7eeEeMEabUPkrbZgp8VEm66Ab4Hcsrkd';
 
-// Root Route - Server Check Karne Ke Liye
-app.get('/', (req, res) => {
-  res.json({
-    status: "Online",
-    message: "Bihar FM LiveKit Backend Running Successfully!",
-    livekit_url: LIVEKIT_URL,
-    test_token_host: "/get-token?isHost=true",
-    test_token_listener: "/get-token?isHost=false"
-  });
-});
-
-// Token Route
 app.get('/get-token', async (req, res) => {
   try {
     const roomName = 'bihar-fm-room';
-    const participantName = req.query.isHost === 'true' ? 'HostUser' : 'Listener_' + Math.floor(Math.random() * 1000);
     const isHost = req.query.isHost === 'true';
+    const participantName = isHost ? 'HostUser' : 'Listener_' + Math.floor(Math.random() * 1000);
 
+    // Modern AccessToken Constructor
     const at = new AccessToken(API_KEY, API_SECRET, {
       identity: participantName,
-      ttl: '10h'
+      name: participantName,
+      ttl: '24h'
     });
 
+    // Explicit Grant Object
     at.addGrant({
       roomJoin: true,
       room: roomName,
       canPublish: isHost,
-      canSubscribe: true,
+      canPublishData: isHost,
+      canSubscribe: true
     });
 
     const token = await at.toJwt();
@@ -48,3 +40,4 @@ app.get('/get-token', async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
